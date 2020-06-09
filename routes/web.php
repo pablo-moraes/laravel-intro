@@ -25,6 +25,10 @@ Route::get('/teste', function () {
     return view('site.teste');
 });
 
+Route::post('/register', function (){
+    return 'Errado';
+});
+
 Route::match(['get', 'post'], '/match', function () {
     return 'match';
 });
@@ -52,4 +56,42 @@ Route::redirect('/redirect1', '/redirect2');
 
 Route::get('redirect2', function () {
     return 'Página redirecionada com sucesso!!';
+});
+
+Route::get('/redirect3', function () {
+    return redirect()->route('url.name');
+});
+
+Route::get('/pablo', function () {
+    return 'hey hey hey';
+})->name('url.name');
+
+// Route::get('/admin/dashboard', function () {
+//     return 'Home Admin';
+// })->middleware('auth');
+
+Route::get('/login', function () {
+    return 'Autenticação necessária para se conectar à rota administrativa';
+})->name('login');
+
+
+// Rotas por grupo
+// Route::middleware(['auth'])->group(function () {
+//     // Prefixo para facilitar caso necessite de troca
+//     Route::prefix('meuteste')->group(function(){
+//         Route::get('/dashboard', function () {
+//             return 'Olá test';
+//         });
+
+//         Route::get('/', 'Admin\TestController@test');
+//     });
+// });
+
+Route::group([
+    'middleware' => [],
+    'prefix' => 'admin',
+    'namespace' => 'Admin',
+    'name' => 'admin.'
+], function() {
+
 });
