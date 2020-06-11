@@ -1,0 +1,1 @@
+<h1 class="first">Alert - {{$content ?? ''}}</h1>
