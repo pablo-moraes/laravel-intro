@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\StoreUpdateProductRequest;
 
 class ProductController extends Controller
 {
     protected $products = ['PHP','Python','Ruby','Javascript','Go','C#','C++','Dart','Node','React','React Native','Laravel','Symfony','Ember','Angular','Knexjs','Expressjs'];
     protected $request;
-
-    public function __construct(Request $request)
+    protected $repo;
+    public function __construct(Request $request, Product $repo)
     {
         $this->request = $request;
+        $this->repo = $repo;
         /*$this->middleware('auth');
         *///Pede autenticação em todos
 
@@ -33,10 +37,13 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
+    {    $products = $this->repo->latest()->paginate(5);
+        // $products = Product::all();
         // return $this->products;
-        $teste = $this->products;
-        return view('admin.pages.products.index', compact('teste'));
+        // $teste = $this->products;
+        return view('admin.pages.products.index', [
+            'products' => $products,
+        ]);
     }
 
     /**
@@ -52,11 +59,28 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request\StoreUpdateProductRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreUpdateProductRequest $request)
     {
+        $data =  $request->only(['name', 'description', 'price']);
+
+        if ($request->hasFile('photo') && $request->photo->isValid()) {
+            $imgPath = $request->photo->store('products');
+
+            $data['photo'] = $imgPath;
+        }
+
+        $this->repo->create($data);
+        return redirect()->route('products.index');
+        // Forma não recomendado
+        // $request->validate([
+        //     'name' => 'required|min:3|max:255',
+        //     'description' => 'nullable|min:3|max:10000',
+        //     'photo' => 'required|image'
+        // ]);
+
         // return $request->only(['name', 'description']);
         // return $request->all();
         // return $request->input('teste', 'default');
@@ -64,7 +88,7 @@ class ProductController extends Controller
         // if(!($request->file('photo')->isValid()));
             // dd($request->photo->extension());
             // dd($request->photo->getClientOriginalName());
-        return $request->file('photo')->store('products');
+        // return $request->file('photo')store('products');
     }
 
     /**
@@ -75,10 +99,13 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        if(array_key_exists($id, $this->products))
-            return $this->products[$id];
-        else
-            return 'Product not found';
+        // $product = Product::where('id', $id)->get();
+        // $product = Product::where('id', $id)->first();
+        $product = $this->repo->find($id);
+        if(!$product) {
+            return redirect()->back();
+        }
+        return view('admin.pages.products.show', ['product' => $product]);
     }
 
     /**
@@ -89,7 +116,11 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        return view('admin.pages.products.edit', ['products' => $this->products, 'id' => $id]);
+        $product = $this->repo->find($id);
+        if(!$product)
+            return redirect()->back();
+        return view('admin.pages.products.edit', ['product' =>  $product]);
+
     }
 
     /**
@@ -101,7 +132,24 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        return dd('Editando produto: ' . $this->products[$id] . ' ...');
+        $product = $this->repo->find($id);
+        if(!$product)
+            return redirect()->back();
+
+        $data = $request->all();
+
+        if ($request->hasFile('photo') && $request->photo->isValid()) {
+            if ($product->photo && Storage::exists($product->photo)){
+                Storage::delete($product->photo);
+            }
+
+            $imgPath = $request->photo->store('products');
+
+            $data['photo'] = $imgPath;
+        }   
+
+        $product->update($data);
+        return redirect()->route('products.index');
     }
 
     /**
@@ -112,6 +160,24 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        if(!$product = $this->repo->find($id))
+            return redirect()->back();
+        if ($product->photo && Storage::exists($product->photo)){
+            Storage::delete($product->photo);
+        }            
+        $product->delete();
+        return redirect()->route('products.index');
+    }
+
+    /**
+     * Search Products
+     */
+
+    public function search(Request $request)
+    {
+        $filters = $request->except('_token');
+        // dd($request->all());
+        $products = $this->repo->search($request->filter);
+        return view('admin.pages.products.index', ['products' => $products, 'filters' => $filters]);
     }
 }

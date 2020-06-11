@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,8 +25,8 @@ Route::get('/', function () {
 // Route::get('/product/{id}', 'ProductController@show')->name('products.show');
 // Route::get('/product', 'ProductController@index')->name('products.index');
 // Route::post('/product', 'ProductController@store')->name('products.store');
-
-Route::resource('products', 'ProductController');//->middleware('auth');
+Route::any('products/search', 'ProductController@search')->name('products.search');
+Route::resource('products', 'ProductController')->middleware('auth');//->middleware('auth');
 
 Route::get('/login', function () {
     return 'Login';
@@ -38,3 +39,5 @@ Route::group([
     'name' => 'admin.'
 ], function () {
 });
+
+Auth::routes(['register' => false]);

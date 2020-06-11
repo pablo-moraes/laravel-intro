@@ -8,59 +8,45 @@
     <h1>Exibindo os coisos</h1>
     <a href="{{ route('products.create')}}">Cadastrar</a>
 
+    <form action="{{ route('products.search') }}" method="post" class="form form-inline">
+        @csrf
+        <input type="text" name="filter" placeholder="Filtrar" value="{{$filters['filter'] ?? ''}}">
+        <button type="submit"  class="btn btn-primary">Buscar</button>
+    </form>
 
-    @foreach ($teste as $key => $item)
-            
-        <p>
-        <a href="products/{{$key}}" class="
-            @if ($loop->odd)
-                last
-            @endif">
-        {{$key . ':' . $item}}</a></p>
-    @endforeach    
+        <table>
+            <thead>
+                <th>Image</th>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </thead>
+            <tbody>
+                @foreach ($products as $key => $product)
+                    <tr>
+                        @if ($product->photo)
+                            <td>
+                                <img src="{{ url("storage/{$product->photo}") }}" alt="{{$product->photo}}" style="max-width:100px">
+                            </td>
+                        @endif
 
-<hr>
-@component('admin.components.cards')
-    @slot('title')
-        Título test
-    @endslot
-    Um card de exemplo
-@endcomponent
-<hr>
-@include('admin.includes.alerts', ['content' => 'Alerta de Linguagens bacana'])
-    {{-- @if (!is_array($teste))
-        É array
-    @elseif(is_array($teste))
-        É mesmo array
-    @else 
-        Não array
-    @endif
-
-    @unless (!is_array($teste))
-        TESTE
-    @endunless --}}
-
-    {{-- @isset($recor)
-        {{$recor}}
-    @endisset --}}
-        
-    {{-- @empty($record)
-        
-    @endempty --}}
-
-    {{-- @auth
-        
-    @endauth --}}
+                        <td>{{$product->id}}</td>
+                        
+                        
+                        <td>{{$product->name}}</td>
+                        <td>{{$product->price}}</td>
+                        <td>
+                            <a href="{{ route('products.edit', $product->id) }}">Editar</a>    
+                            <a href="{{ route('products.show', $product->id) }}">Detalhes</a>    
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @if (isset($filters))
+            {!! $products->appends($filters)->links()!!}    
+        @else
+            {!! $products->links()!!}    
+        @endif
 @endsection
-
-@push('style')
-    <style>
-        html, body {margin: 15px; padding: 15px;}
-        .test {
-            background: #041220;
-            color: #FFF;
-            font-weight:600;
-            padding: 0 0 0 4px;
-        }
-    </style>
-@endpush

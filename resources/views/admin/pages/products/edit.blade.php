@@ -6,17 +6,14 @@
 
 @section('content')
     <h1>Editar produto 
-        {{$products[$id]}}
+        {{$product->id}}
     </h1>
     <a href="{{ route('products.index')}}">Voltar</a>
-
-    <form action="{{ route('products.update', $id) }}" method="post">
-        @method('put')
+    @include('admin.includes.alerts')
+    <form action="{{ route('products.update', $product->id) }}" method="post" enctype="multipart/form-data">
+        {{-- <input type="text" name="_token" value="{{ csrf_token() }}"> --}}
         @csrf
-        <label for="idname">Name</label>
-        <input type="text" name="name" id="idname">
-        <label for="iddesc">Description</label>
-        <input type="text" name="description" id="iddesc">
-        <button type="submit">Enviar</button>
+        @method('put')
+        @include('admin.pages.products._partials.form');
     </form>    
 @endsection
