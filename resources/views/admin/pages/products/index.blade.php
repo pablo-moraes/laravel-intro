@@ -22,7 +22,7 @@
 <hr>
 @component('admin.components.cards')
     @slot('title')
-        Só é corno quem namora
+        Título test
     @endslot
     Um card de exemplo
 @endcomponent
